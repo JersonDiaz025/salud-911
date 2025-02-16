@@ -1,6 +1,6 @@
 import { StyleSheet, View, Text } from "react-native";
 
-export default function HomeScreen() {
+export default function CentersScreen() {
   return (
     <View
       style={{
@@ -11,27 +11,21 @@ export default function HomeScreen() {
       }}
     >
       <Text style={{ fontWeight: 600, color: "#00000", fontSize: 20 }}>
-        Home screen
+        Screen centers
       </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  headerImage: {
+    color: "#808080",
+    bottom: -90,
+    left: -35,
+    position: "absolute",
+  },
   titleContainer: {
     flexDirection: "row",
-    alignItems: "center",
     gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
   },
 });
