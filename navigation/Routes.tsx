@@ -12,7 +12,6 @@ const Routes = () => {
     const checkToken = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
-        console.log("Token:", token);
         if (token) {
           setIslogued(true);
         }
