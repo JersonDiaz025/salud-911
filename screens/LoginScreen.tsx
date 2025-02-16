@@ -2,6 +2,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "expo-router";
 import React from "react";
+import apiRequest from "@/util/request";
 
 import { useState } from "react";
 import {
@@ -13,7 +14,10 @@ import {
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
+  Alert
 } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const LoginScreen = () => {
   const navigation = useNavigation();
@@ -22,7 +26,29 @@ const LoginScreen = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = () => {};
+  const handleSubmit = async () => {
+    const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
+    const isValidEmail = emailRegex.test(email);
+    if(!isValidEmail) return Alert.alert("Debes ingresar un correo válido.")
+     const fields = [email, password];
+     if (fields.some(field => field.trim() === "")) {
+          return Alert.alert("Debes de proveer todos los datos para continuar...");
+        }
+      const user = {
+        email,
+        password
+      }
+    try {
+      const result = await apiRequest(user as any, "POST", "/user/login");
+      if(result){
+        await AsyncStorage.setItem("token", result);
+
+      }
+      AsyncStorage.setItem("token", result);
+    } catch (error) {
+      console.log(error, "Error") 
+    }
+  };
 
   return (
     <ImageBackground
