@@ -2,6 +2,8 @@ import { StyleSheet, View, Text } from "react-native";
 import { useState, useEffect } from "react";
 import apiRequest from "@/util/request";
 import MapView, {Marker} from 'react-native-maps';
+import * as Location from 'expo-location';
+
 
 
 export default function HomeScreen() {
@@ -9,9 +11,11 @@ export default function HomeScreen() {
   const [region, setRegion] = useState({
     latitude: 18.7357, 
     longitude: -70.1627,
-    latitudeDelta: 0.5,
-    longitudeDelta: 0.5,
+    latitudeDelta: 0.1,
+    longitudeDelta: 0.1,
   });
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const getCenterData = async () => {
     try {
@@ -28,6 +32,22 @@ export default function HomeScreen() {
       console.error("Error fetching centers:", error);
     }
   };
+
+  useEffect(() => {
+    async function getCurrentLocation() {
+      
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+
+      let location = await Location.getCurrentPositionAsync({});
+      setLocation(location);
+    }
+
+    getCurrentLocation();
+  }, []);
   
 
   useEffect(() => {
@@ -36,14 +56,18 @@ export default function HomeScreen() {
   }, []);
 
   useEffect(() => {
-    if (centers.length > 0) {
+    if (location) {
       setRegion({
-        latitude: centers[0].latitude, 
-        longitude: centers[0].longitude, 
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
         latitudeDelta: 0.1,
         longitudeDelta: 0.1,
       });
     }
+  }, [location]);
+
+  useEffect(() => {
+  console.log(centers)
   }, [centers]);
   
 
