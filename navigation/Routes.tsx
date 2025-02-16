@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Routes = () => {
-  const [isLogued, setIslogued] = useState(true);
+  const [isLogued, setIslogued] = useState(false);
 
   return (
     <SafeAreaProvider isTVSelectable={true}>
