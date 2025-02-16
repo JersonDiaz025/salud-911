@@ -15,7 +15,7 @@ import {
   Platform,
 } from "react-native";
 
-const LoginScreen = ({ handleLogin }: any) => {
+const LoginScreen = () => {
   const navigation = useNavigation();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -87,9 +87,7 @@ const LoginScreen = ({ handleLogin }: any) => {
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
               <Text style={styles.buttonText}>Iniciar sesión</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.buttonSign} onPress={handleLogin}>
-              <Text style={styles.buttonText}>Iniciar sin cuenta</Text>
-            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => navigation.replace("Register")}
               style={styles.switchButton}

@@ -4,7 +4,7 @@ import { Login, Register } from "@/screens";
 
 const Stack = createStackNavigator();
 
-const AuthStack = ({ handleLogin }: any) => {
+const AuthStack = () => {
   return (
     <>
       <Stack.Navigator
@@ -12,10 +12,7 @@ const AuthStack = ({ handleLogin }: any) => {
           headerShown: false,
         }}
       >
-        <Stack.Screen
-          name="Login"
-          component={() => <Login handleLogin={handleLogin} />}
-        />
+        <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Register" component={Register} />
       </Stack.Navigator>
     </>
