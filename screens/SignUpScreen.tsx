@@ -3,6 +3,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useNavigation } from "expo-router";
+import apiRequest from "../util/request"
 
 import { useState } from "react";
 import {
@@ -14,6 +15,7 @@ import {
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
+  Alert
 } from "react-native";
 
 const SignUpScreen = () => {
@@ -23,9 +25,31 @@ const SignUpScreen = () => {
   const [lastName, setLastName] = useState("");
   const [identification, setidentification] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassowrd] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = () => {};
+  const handleSubmit = async () => {
+    const fields = [name, email, lastName, identification, password, confirmPassword];
+
+    if (fields.some(field => field.trim() === "")) {
+      return Alert.alert("Debes de proveer todos los datos para continuar...");
+    }
+
+    if (password !== confirmPassword) return Alert.alert("Las contraseñas no coinciden..")
+    const newUser = {
+      name: name,
+      last_name: lastName,
+      email: email,
+      password: password,
+      identification: identification,
+      confirmPassword: confirmPassword
+    };
+
+
+    const result = await apiRequest(newUser as any, "POST", "/user");
+    navigation.replace("Login")
+    console.log(result, "this is the result...")
+  };
 
   return (
     <ImageBackground
@@ -45,23 +69,6 @@ const SignUpScreen = () => {
             <Text style={styles.title}>Crear cuenta</Text>
             <View style={styles.inputContainer}>
               <MaterialIcons
-                name="email"
-                size={24}
-                color="white"
-                style={styles.icon}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="Correo electrónico"
-                placeholderTextColor="rgba(255,255,255,0.7)"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <MaterialIcons
                 name="drive-file-rename-outline"
                 size={24}
                 style={styles.icon}
@@ -77,12 +84,35 @@ const SignUpScreen = () => {
               />
             </View>
             <View style={styles.inputContainer}>
+              <MaterialIcons
+                name="drive-file-rename-outline"
+                size={24}
+                style={styles.icon}
+                color="white"
+              />
               <TextInput
                 style={styles.input}
                 placeholder="Apellido"
                 placeholderTextColor="rgba(255,255,255,0.7)"
                 value={lastName}
                 onChangeText={setLastName}
+                autoCapitalize="none"
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <MaterialIcons
+                name="email"
+                size={24}
+                color="white"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Correo electrónico"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
                 autoCapitalize="none"
               />
             </View>
@@ -128,8 +158,34 @@ const SignUpScreen = () => {
                 />
               </TouchableOpacity>
             </View>
+            <View style={styles.inputContainer}>
+              <MaterialIcons
+                name="lock"
+                size={24}
+                color="white"
+                style={styles.icon}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Confirmar contraseña"
+                placeholderTextColor="rgba(255,255,255,0.7)"
+                value={confirmPassword}
+                onChangeText={setConfirmPassowrd}
+                secureTextEntry={!showPassword}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeIcon}
+              >
+                <MaterialIcons
+                  name={showPassword ? "visibility" : "visibility-off"}
+                  size={24}
+                  color="white"
+                />
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>Ingresar</Text>
+              <Text style={styles.buttonText}>Crear Cuenta</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.switchButton}
