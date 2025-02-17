@@ -1,21 +1,22 @@
-import { StyleSheet, View, Text } from "react-native";
-import { useState, useEffect } from "react";
+import { useRef, useState, useEffect } from "react";
+import { StyleSheet, View } from "react-native";
+import MapView, { Marker, Polyline } from "react-native-maps";
+import MapViewDirections from "react-native-maps-directions";
+import * as Location from "expo-location";
 import apiRequest from "@/util/request";
-import MapView, {Marker} from 'react-native-maps';
-import * as Location from 'expo-location';
-
-
 
 export default function HomeScreen() {
+  const mapRef = useRef<MapView | null>(null);
   const [centers, setCenters] = useState<{ latitude: number; longitude: number }[]>([]);
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [nearestCenter, setNearestCenter] = useState<{ latitude: number; longitude: number } | null>(null);
+  
   const [region, setRegion] = useState({
     latitude: 18.7357, 
     longitude: -70.1627,
     latitudeDelta: 0.1,
     longitudeDelta: 0.1,
   });
-  const [location, setLocation] = useState<Location.LocationObject | null>(null);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const getCenterData = async () => {
     try {
@@ -24,8 +25,7 @@ export default function HomeScreen() {
         const formattedCenters = result.data.map((center: any) => ({
           latitude: parseFloat(center?.latitude), 
           longitude: parseFloat(center?.longitude) 
-        }))
-  
+        }));
         setCenters(formattedCenters);
       }
     } catch (error) {
@@ -35,24 +35,19 @@ export default function HomeScreen() {
 
   useEffect(() => {
     async function getCurrentLocation() {
-      
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
+        console.error('Permission to access location was denied');
         return;
       }
-
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
     }
-
     getCurrentLocation();
   }, []);
-  
 
   useEffect(() => {
     getCenterData();
-
   }, []);
 
   useEffect(() => {
@@ -60,60 +55,67 @@ export default function HomeScreen() {
       setRegion({
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
-        latitudeDelta: 0.1,
-        longitudeDelta: 0.1,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
       });
-    }
-  }, [location]);
 
-  useEffect(() => {
-  console.log(centers)
-  }, [centers]);
-  
+      if (mapRef.current) {
+        mapRef.current.animateToRegion({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        }, 1000);
+      }
+
+      if (centers.length > 0) {
+        let nearest = centers.reduce((prev, curr) => {
+          let prevDistance = Math.sqrt(
+            Math.pow(prev.latitude - location.coords.latitude, 2) +
+            Math.pow(prev.longitude - location.coords.longitude, 2)
+          );
+          let currDistance = Math.sqrt(
+            Math.pow(curr.latitude - location.coords.latitude, 2) +
+            Math.pow(curr.longitude - location.coords.longitude, 2)
+          );
+          return currDistance < prevDistance ? curr : prev;
+        });
+        setNearestCenter(nearest);
+      }
+    }
+  }, [location, centers]);
 
   return (
-    <View
-      style={{
-        height: "100%",
-        width: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-       <MapView style={styles.map} region={region}>
-       {centers.map((center, index) => (
+    <View style={{ flex: 1 }}>
+      <MapView ref={mapRef} style={styles.map} region={region} showsUserLocation={true}>
+        {centers.map((center, index) => (
           <Marker
             key={index}
-            coordinate={{ latitude:  center?.latitude, longitude: center?.longitude }}
-            pinColor="red" 
+            coordinate={{ latitude: center.latitude, longitude: center.longitude }}
+            pinColor="red"
           />
         ))}
-       
-      </MapView>
 
+        {location && nearestCenter && (
+          <MapViewDirections
+            origin={{
+              latitude: location?.coords?.latitude,
+              longitude: location?.coords?.longitude,
+            }}
+            destination={nearestCenter}
+            apikey={`${process.env.EXPO_PUBLIC_GOOGLE_MAPS_APIKEY}`}
+            strokeWidth={4}
+            strokeColor="green"
+          />
+        )}
+      </MapView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: "absolute",
-  },
   map: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
 });
