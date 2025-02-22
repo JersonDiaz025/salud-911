@@ -87,7 +87,6 @@ export default function HomeScreen() {
 
  
 useEffect(() => {
-  console.log(nearestCenter, "this is the route")
 }, [nearestCenter]);
 
   return (
