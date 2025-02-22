@@ -6,7 +6,7 @@ const AppNavigator = () => {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         headerBackVisible: false,
         headerTransparent: false,
         headerTintColor: "#11181C",
@@ -24,7 +24,6 @@ const AppNavigator = () => {
           >
             <Image
               style={{ width: 200, height: 45 }}
-              source={require("../assets/images/SALUD-logo.jpg")}
               resizeMode="contain"
             />
           </View>

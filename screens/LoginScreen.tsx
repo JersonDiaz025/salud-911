@@ -1,8 +1,9 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "expo-router";
-import React from "react";
+import React, { useContext } from "react";
 import apiRequest from "@/util/request";
+import { AuthContext } from "@/util/AuthContext";
 
 import { useState } from "react";
 import {
@@ -25,28 +26,35 @@ const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const authContext = useContext(AuthContext);
 
+
+  if (!authContext) {
+    throw new Error("AuthContext must be used within an AuthProvider");
+  }
+
+  const { login } = authContext;
   const handleSubmit = async () => {
     const emailRegex = /^[\w.-]+@[a-zA-Z\d.-]+\.[a-zA-Z]{2,}$/;
     const isValidEmail = emailRegex.test(email);
-    if(!isValidEmail) return Alert.alert("Debes ingresar un correo válido.")
-     const fields = [email, password];
-     if (fields.some(field => field.trim() === "")) {
-          return Alert.alert("Debes de proveer todos los datos para continuar...");
-        }
-      const user = {
-        email,
-        password
-      }
+    if (!isValidEmail) return Alert.alert("Debes ingresar un correo válido.")
+    const fields = [email, password];
+    if (fields.some(field => field.trim() === "")) {
+      return Alert.alert("Debes de proveer todos los datos para continuar...");
+    }
+    const user = {
+      email,
+      password
+    }
     try {
       const result = await apiRequest(user as any, "POST", "/user/login");
-      if(result){
-        await AsyncStorage.setItem("token", result);
+      if (result) {
+        login(result?.data)
 
       }
-      AsyncStorage.setItem("token", result);
+      AsyncStorage.setItem("token", result?.data);
     } catch (error) {
-      console.log(error, "Error") 
+      console.log(error, "Error")
     }
   };
 
