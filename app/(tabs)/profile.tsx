@@ -1,17 +1,20 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { StyleSheet, View, Text, SafeAreaView, TouchableOpacity, Animated } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import JWT from "expo-jwt";
 import { Divider, Image } from '@rneui/themed';
 import { AntDesign } from '@expo/vector-icons';
-import { useRouter } from "expo-router";
+import { AuthContext } from "@/util/AuthContext";
+
 
 const Profile = () => {
   const [user, setUser] = useState({ name: "", last_name: "", email: "", identification: "" });
   const fadeAnim = useState(new Animated.Value(1))[0];
-  const router = useRouter();
-
-
+  const authContext = useContext(AuthContext);
+  if (!authContext) {
+    throw new Error("AuthContext must be used within an AuthProvider");
+  }
+  const { logout } = authContext;
 
   useEffect(() => {
     const getUserData = async () => {
@@ -38,16 +41,6 @@ const Profile = () => {
       useNativeDriver: true,
     }).start();
   }, []);
-
-  const logout = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      console.log("Sesión cerrada.");
-      router.replace("/Login")
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-    }
-  };
 
   return (
     <SafeAreaView style={styles.container}>
