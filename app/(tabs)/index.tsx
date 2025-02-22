@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, View, Text } from "react-native";
 import MapView, { Marker, Polyline } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 import * as Location from "expo-location";
@@ -10,9 +10,10 @@ export default function HomeScreen() {
   const [centers, setCenters] = useState<{ latitude: number; longitude: number }[]>([]);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [nearestCenter, setNearestCenter] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [travelTime, setTravelTime] = useState(0);
 
   const [region, setRegion] = useState({
-    latitude: 18.7357, 
+    latitude: 18.7357,
     longitude: -70.1627,
     latitudeDelta: 0.1,
     longitudeDelta: 0.1,
@@ -23,8 +24,8 @@ export default function HomeScreen() {
       const result = await apiRequest("", "GET", "/center");
       if (result?.data) {
         const formattedCenters = result.data.map((center: any) => ({
-          latitude: parseFloat(center?.latitude), 
-          longitude: parseFloat(center?.longitude) 
+          latitude: parseFloat(center?.latitude),
+          longitude: parseFloat(center?.longitude)
         }));
         setCenters(formattedCenters);
       }
@@ -85,37 +86,49 @@ export default function HomeScreen() {
     }
   }, [location, centers]);
 
- 
-useEffect(() => {
-}, [nearestCenter]);
+
+  useEffect(() => {
+    console.log(travelTime)
+  }, [nearestCenter, travelTime]);
 
   return (
     <View style={{ flex: 1 }}>
-      <MapView ref={mapRef} style={styles.map} region={region} showsUserLocation={true}>
-        {centers.map((center, index) => (
-          <Marker
-            key={index}
-            coordinate={{ latitude: center.latitude, longitude: center.longitude }}
-            pinColor="red"
-          />
-        ))}
-
-        {location && nearestCenter?.latitude && nearestCenter?.longitude && (
-          <MapViewDirections
-            origin={{
-              latitude: location?.coords?.latitude,
-              longitude: location?.coords?.longitude,
-            }}
-            destination={{ latitude: nearestCenter.latitude, longitude: nearestCenter.longitude }}
-            apikey={`${process.env.EXPO_PUBLIC_GOOGLE_MAPS_APIKEY}`}
-            strokeWidth={4}
-            strokeColor="green"
-            onReady={() => mapRef.current?.fitToSuppliedMarkers(["origin", "destination"], { edgePadding: { top: 50, right: 50, bottom: 50, left: 50 } })}
-          
-          />
+      <View style={{ flex: 1, position: "relative" }}>
+        {travelTime > 0 && (
+          <View style={styles.travelTimeContainer}>
+            <Text style={styles.travelTimeText}>
+              Tiempo estimado: {Math.round(travelTime)} min
+            </Text>
+          </View>
         )}
-      </MapView>
+
+        <MapView ref={mapRef} style={styles.map} region={region} showsUserLocation={true}>
+          {centers.map((center, index) => (
+            <Marker key={index} coordinate={{ latitude: center.latitude, longitude: center.longitude }} pinColor="red" />
+          ))}
+
+          {location && nearestCenter?.latitude && nearestCenter?.longitude && (
+            <MapViewDirections
+              origin={{
+                latitude: location?.coords?.latitude,
+                longitude: location?.coords?.longitude,
+              }}
+              destination={{ latitude: nearestCenter.latitude, longitude: nearestCenter.longitude }}
+              apikey={`${process.env.EXPO_PUBLIC_GOOGLE_MAPS_APIKEY}`}
+              strokeWidth={4}
+              strokeColor="green"
+              onReady={(result) => {
+                mapRef.current?.fitToSuppliedMarkers(["origin", "destination"], {
+                  edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+                });
+                setTravelTime(result.duration);
+              }}
+            />
+          )}
+        </MapView>
+      </View>
     </View>
+
   );
 }
 
@@ -124,4 +137,22 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+  travelTimeContainer: {
+    position: "absolute",
+    top: 40,
+    left: "10%",
+    right: "10%",
+    backgroundColor: "rgba(0,0,0,0.7)",
+    padding: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
+  travelTimeText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "white",
+  },
 });
+
